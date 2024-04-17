@@ -1,20 +1,25 @@
-// App.js
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'; // Supprimez useNavigate
 import HomePage from './components/Home/Homepage';
-import ChatPage from './components/Chat/Chatpage';
 import Navbar from './components/Navbar/Navbar';
 import { ThemeProvider } from '@mui/material/styles';
-import theme from './components/Theme/createTheme'; // Import du thème Material UI
+import theme from './components/Theme/createTheme';
+import ProfilePage from './components/Profil/Profil';
 
 const App = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
+
   return (
-    <ThemeProvider theme={theme}> {/* Envelopper toute l'application avec le thème */}
+    <ThemeProvider theme={theme}>
       <Router>
         <Navbar />
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/" element={<HomePage onLogin={handleLogin} />} />
+          <Route path="/chat" element={isAuthenticated ? <ProfilePage/> : <Navigate to="/" />} />
         </Routes>
       </Router>
     </ThemeProvider>
