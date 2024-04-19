@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { List, ListItem, ListItemAvatar, Avatar, ListItemText, Divider, Typography } from '@mui/material';
 
 const ContactList = () => {
-  const contacts = [
-    { id: 1, name: 'Alice', email: 'alice@example.com', imageUrl: 'https://source.unsplash.com/random', phone: '123456789' },
-    { id: 2, name: 'Bob', email: 'bob@example.com', imageUrl: 'https://source.unsplash.com/random', phone: '987654321' },
-    { id: 3, name: 'Charlie', email: 'charlie@example.com', imageUrl: 'https://source.unsplash.com/random', phone: '555555555' },
-  ];
+  const [contacts, setContacts] = useState([]);
+
+  useEffect(() => {
+    // Effectue une requête HTTP vers votre backend pour récupérer les contacts
+    fetch('http://localhost:6060/contact/all')
+      .then(response => response.json())
+      .then(data => setContacts(data))
+      .catch(error => console.error('Error fetching contacts:', error));
+  }, []);
 
   return (
     <div>

@@ -5,6 +5,10 @@ import { baseurl } from '../../utils/requetes.js';
 import { useNavigate } from 'react-router-dom'; 
 
 const AuthForm = ({ onLogin }) => {
+    const [message, setMessage] = useState("");
+    
+    const history = useNavigate();
+  
   const [formData, setFormData] = useState({
     username: '',
     firstName: '',
@@ -51,42 +55,51 @@ const AuthForm = ({ onLogin }) => {
     }
   };
   
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const formData = {
+      email: data.get("email"),
+      password: data.get("password"),
+    };
+
     try {
-      const response = await fetch('http://localhost:8080/loginAndAuthentification/authenticate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(loginData)
-      });
-  
+      // Authentification
+      const response = await fetch(
+        "http://localhost:8080/loginAndAuthentification/authenticate",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
       if (response.ok) {
-        const data = await response.json();
-        console.log('User logged in:', data);
-  
-        
-        localStorage.setItem('username', data.username);
-        localStorage.setItem('email', data.email);
-        localStorage.setItem('nom', data.nom);
-        localStorage.setItem('id', data.id);
-        localStorage.setItem('isAuthenticated', data.isAuthenticated);
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('phone', data.phone);
-        localStorage.setItem('prenom', data.prenom);
-  
-        // Appel de la fonction onLogin lorsque la connexion est réussie
-        onLogin();
-  
-        // Navigation vers la page de chat après la connexion
-        navigate('/chat');
-      } else {
         const jsonResponse = await response.json();
-        console.error('Error logging in:', jsonResponse);
+        const accessToken = jsonResponse.token;
+        const refreshToken = jsonResponse.refreshToken;
+        const nom = jsonResponse.nom;
+        const email = jsonResponse.email;
+        const prenom = jsonResponse.prenom;
+        const phone = jsonResponse.phone;
+          
+        localStorage.setItem("nom", nom);
+        localStorage.setItem("email", email);
+        localStorage.setItem("refresh_token", refreshToken);
+        localStorage.setItem("access_token", accessToken);
+        localStorage.setItem("isAuthenticated", true);
+        localStorage.setItem("prenom", prenom);
+        localStorage.setItem("phone", phone);
+        localStorage.setItem("tokenExpiration", Date.now() + 3600000); // 1 heure
+        setMessage("Authentification réussie !");
+        history("/Profil");
+        onLogin();
+      } else {
+        setMessage("Échec de l'authentification. Veuillez réessayer.");
       }
     } catch (error) {
-      console.error('Error logging in:', error);
+      setMessage("Échec de l'authentification. Veuillez réessayer.");
     }
   };
 
@@ -113,7 +126,7 @@ const AuthForm = ({ onLogin }) => {
             transition={{ duration: 0.5 }}
           >
             {tabValue === 0 ? (
-              <form onSubmit={handleLoginSubmit}>
+              <form onSubmit={handleSubmit}>
                 <Typography variant="h4" gutterBottom>Connexion</Typography>
                 <TextField
                   id="email"
